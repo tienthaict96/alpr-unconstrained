@@ -76,7 +76,7 @@ if __name__ == '__main__':
 	opt = getattr(keras.optimizers,args.optimizer)(lr=args.learning_rate)
 	model.compile(loss=loss, optimizer=opt)
 
-	print 'Checking input directory...'
+	print('Checking input directory...')
 	Files = image_files_from_folder(train_dir)
 
 	Data = []
