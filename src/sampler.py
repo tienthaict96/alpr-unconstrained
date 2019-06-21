@@ -66,7 +66,9 @@ def augment_sample(I,pts,dim):
 	if angles.sum() > maxsum:
 		angles = (angles/angles.sum())*(maxangle/maxangle.sum())
 
+	# chuyển qua ma trận float32, chia cho 255
 	I = im2single(I)
+	# Lấy w, h dạng ma trận
 	iwh = getWH(I.shape)
 
 	whratio = random.uniform(2.,4.)
@@ -78,6 +80,7 @@ def augment_sample(I,pts,dim):
 	dy = random.uniform(0.,dim - hsiz)
 
 	pph = getRectPts(dx,dy,dx+wsiz,dy+hsiz)
+	# Lấy tọa độ thật
 	pts = pts*iwh.reshape((2,1))
 	T = find_T_matrix(pts2ptsh(pts),pph)
 
@@ -97,6 +100,7 @@ def augment_sample(I,pts,dim):
 	if random.random() > .5:
 		Iroi,pts = flip_image_and_pts(Iroi,pts)
 
+	# lấy giá trị tọa độ top-left, bot-right
 	tl,br = pts.min(1),pts.max(1)
 	llp = Label(0,tl,br)
 

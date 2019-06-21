@@ -53,7 +53,8 @@ def nms(Labels,iou_threshold=.5):
 	return SelectedLabels
 
 
-def image_files_from_folder(folder,upper=True):
+def image_files_from_folder(folder, upper=True):
+	'''Trả lại danh sách path image có trong folder'''
 	extensions = ['jpg','jpeg','png']
 	img_files  = []
 	for ext in extensions:

@@ -19,12 +19,13 @@ from src.data_generator import DataGenerator
 from pdb import set_trace as pause
 
 
-def load_network(modelpath,input_dim):
-
+def load_network(modelpath, input_dim):
+	# input_dim = 208
 	model = load_model(modelpath)
 	input_shape = (input_dim,input_dim,3)
 
 	# Fixed input size for training
+	# Số chiều đầu vào là 208*208
 	inputs  = keras.layers.Input(shape=(input_dim,input_dim,3))
 	outputs = model(inputs)
 
@@ -32,6 +33,7 @@ def load_network(modelpath,input_dim):
 	output_dim   = output_shape[1]
 	model_stride = input_dim / output_dim
 
+	'''kiểm tra điều kiện, nếu sai > out, kèm exception'''
 	assert input_dim % output_dim == 0, \
 		'The output resolution must be divisible by the input resolution'
 
@@ -42,7 +44,10 @@ def load_network(modelpath,input_dim):
 	return model, model_stride, input_shape, output_shape
 
 def process_data_item(data_item,dim,model_stride):
-	XX,llp,pts = augment_sample(data_item[0],data_item[1].pts,dim)
+	# data_item[0] dữ liệu ảnh opencv
+	# data_item[1].pts thông tin tọa độ đã scale về 0-1
+	# dim là 208
+	XX, llp, pts = augment_sample(data_item[0], data_item[1].pts, dim)
 	YY = labels2output_map(llp,pts,dim,model_stride)
 	return XX,YY
 
@@ -50,6 +55,7 @@ def process_data_item(data_item,dim,model_stride):
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
+	# Lưu checkpoint
 	parser.add_argument('-m' 		,'--model'			,type=str   , required=True		,help='Path to previous model')
 	parser.add_argument('-n' 		,'--name'			,type=str   , required=True		,help='Model name')
 	parser.add_argument('-tr'		,'--train-dir'		,type=str   , required=True		,help='Input data directory for training')
@@ -71,23 +77,26 @@ if __name__ == '__main__':
 	if not isdir(outdir):
 		makedirs(outdir)
 
-	model,model_stride,xshape,yshape = load_network(args.model,dim)
+	model, model_stride, xshape, yshape = load_network(args.model,dim)
 
 	opt = getattr(keras.optimizers,args.optimizer)(lr=args.learning_rate)
 	model.compile(loss=loss, optimizer=opt)
 
 	print('Checking input directory...')
+	'''Trả lại danh sách path image có trong folder'''
 	Files = image_files_from_folder(train_dir)
 
 	Data = []
 	for file in Files:
+		# Lấy path+tên file (bỏ đi phần mở rộng)
 		labfile = splitext(file)[0] + '.txt'
 		if isfile(labfile):
+			# trả lại đối tượng bao gồm tọa độ các vị trí, lấy lại tọa độ của biển tại index 0
 			L = readShapes(labfile)
 			I = cv2.imread(file)
 			Data.append([I,L[0]])
 
-	print '%d images with labels found' % len(Data)
+	print('%d images with labels found' % len(Data))
 
 	dg = DataGenerator(	data=Data, \
 						process_data_item_func=lambda x: process_data_item(x,dim,model_stride),\
@@ -106,20 +115,20 @@ if __name__ == '__main__':
 
 	for it in range(iterations):
 
-		print 'Iter. %d (of %d)' % (it+1,iterations)
+		print('Iter. %d (of %d)' % (it+1,iterations))
 
 		Xtrain,Ytrain = dg.get_batch(batch_size)
 		train_loss = model.train_on_batch(Xtrain,Ytrain)
 
-		print '\tLoss: %f' % train_loss
+		print('\tLoss: %f' % train_loss)
 
 		# Save model every 1000 iterations
 		if (it+1) % 1000 == 0:
-			print 'Saving model (%s)' % model_path_backup
+			print('Saving model (%s)' % model_path_backup)
 			save_model(model,model_path_backup)
 
-	print 'Stopping data generator'
+	print('Stopping data generator')
 	dg.stop()
 
-	print 'Saving model (%s)' % model_path_final
+	print('Saving model (%s)' % model_path_final)
 	save_model(model,model_path_final)

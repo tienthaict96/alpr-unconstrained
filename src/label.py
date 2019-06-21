@@ -97,7 +97,7 @@ def dknet_label_conversion(R,img_width,img_height):
 
 class Shape():
 
-	def __init__(self,pts=np.zeros((2,0)),max_sides=4,text=''):
+	def __init__(self, pts=np.zeros((2,0)),max_sides=4,text=''):
 		self.pts = pts
 		self.max_sides = max_sides
 		self.text = text
@@ -113,14 +113,17 @@ class Shape():
 		fp.write('\n')
 
 	def read(self,line):
+		# lấy tọa độ cách nhau dấu phẩy
 		data 		= line.strip().split(',')
+		# lấy số đỉnh
 		ss 			= int(data[0])
+		# lấy 8 gtri tọa độ
 		values 		= data[1:(ss*2 + 1)]
 		text 		= data[(ss*2 + 1)] if len(data) >= (ss*2 + 2) else ''
 		self.pts 	= np.array([float(value) for value in values]).reshape((2,ss))
 		self.text   = text
 
-def readShapes(path,obj_type=Shape):
+def readShapes(path, obj_type=Shape):
 	shapes = []
 	with open(path) as fp:
 		for line in fp:
