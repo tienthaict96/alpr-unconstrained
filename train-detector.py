@@ -17,6 +17,14 @@ from src.sampler import augment_sample, labels2output_map
 from src.data_generator import DataGenerator
 
 from pdb import set_trace as pause
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+# config.log_device_placement = True
+sess = tf.Session(config=config)
+set_session(sess)
 
 
 def load_network(modelpath, input_dim):
@@ -87,14 +95,19 @@ if __name__ == '__main__':
 	Files = image_files_from_folder(train_dir)
 
 	Data = []
+	# for file in Files:
+	# 	# Lấy path+tên file (bỏ đi phần mở rộng)
+	# 	labfile = splitext(file)[0] + '.txt'
+	# 	if isfile(labfile):
+	# 		# trả lại đối tượng bao gồm tọa độ các vị trí, lấy lại tọa độ của biển tại index 0
+	# 		L = readShapes(labfile)
+	# 		I = cv2.imread(file)
+	# 		Data.append([I,L[0]])
 	for file in Files:
-		# Lấy path+tên file (bỏ đi phần mở rộng)
-		labfile = splitext(file)[0] + '.txt'
-		if isfile(labfile):
-			# trả lại đối tượng bao gồm tọa độ các vị trí, lấy lại tọa độ của biển tại index 0
-			L = readShapes(labfile)
-			I = cv2.imread(file)
-			Data.append([I,L[0]])
+		'''trả lại đối tượng bao gồm tọa độ các vị trí, lấy lại tọa độ của biển tại index 0'''
+		L = readShapes(labfile)
+		I = cv2.imread(file)
+		Data.append([I,L[0]])
 
 	print('%d images with labels found' % len(Data))
 
@@ -108,7 +121,8 @@ if __name__ == '__main__':
 	dg.start()
 
 	Xtrain = np.empty((batch_size,dim,dim,3),dtype='single')
-	Ytrain = np.empty((batch_size,dim/model_stride,dim/model_stride,2*4+1))
+	print(model_stride)
+	Ytrain = np.empty((batch_size,int(dim/model_stride), int(dim/model_stride),2*4+1))
 
 	model_path_backup = '%s/%s_backup' % (outdir,netname)
 	model_path_final  = '%s/%s_final'  % (outdir,netname)
